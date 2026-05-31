@@ -5,7 +5,7 @@ import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { getManagedPricing, getManagedTools } from "@/lib/admin-store";
 import { ADMIN_COOKIE, verifyAdminToken } from "@/lib/admin-token";
 import { getProviderStatus } from "@/lib/providers";
-import { getUsageStats } from "@/lib/usage";
+import { getUsageStats, type UsageStats } from "@/lib/usage";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -13,6 +13,23 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
+
+const emptyUsageStats: UsageStats = {
+  totalUsers: 0,
+  totalAiUses: 0,
+  totalNonAiUses: 0,
+  todayAiUses: 0,
+  todayUsers: 0,
+};
+
+async function loadAdminData<T>(label: string, loader: () => Promise<T>, fallback: T) {
+  try {
+    return await loader();
+  } catch (error) {
+    console.error(`[ToolVerse] Admin ${label} load failed`, error);
+    return fallback;
+  }
+}
 
 export default async function AdminPage() {
   const token = (await cookies()).get(ADMIN_COOKIE)?.value;
@@ -23,10 +40,10 @@ export default async function AdminPage() {
   }
 
   const [managedTools, stats, providers, pricingPlans] = await Promise.all([
-    getManagedTools(),
-    getUsageStats(),
-    getProviderStatus(),
-    getManagedPricing(),
+    loadAdminData("tools", getManagedTools, []),
+    loadAdminData("usage stats", getUsageStats, emptyUsageStats),
+    loadAdminData("provider status", getProviderStatus, []),
+    loadAdminData("pricing plans", getManagedPricing, []),
   ]);
 
   return (
