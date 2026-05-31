@@ -52,6 +52,9 @@ type EncodedUpload = {
 };
 
 function endpointFor(tool: Tool) {
+  if (tool.slug === "background-remover") return "/api/convert";
+  if (tool.slug === "image-to-text-ocr" || tool.slug === "resume-ats-checker" || tool.slug === "pdf-summarizer") return "/api/ocr";
+  if (tool.slug === "ai-headshot-generator") return "/api/image";
   if (tool.category === "ai-image" && tool.outputType === "image") return "/api/image";
   if (tool.category === "image-conversion") return "/api/convert";
   if (tool.category === "pdf-ocr" && tool.isAI) return "/api/ocr";
@@ -79,7 +82,12 @@ export function ToolForm({ tool }: ToolFormProps) {
   const initialInputs = useMemo(
     () =>
       Object.fromEntries(
-        tool.fields.map((field) => [field.name, field.options?.[0] || ""]),
+        tool.fields.map((field) => [
+          field.name,
+          field.default !== undefined
+            ? String(field.default)
+            : field.options?.[0] || "",
+        ]),
       ) as Record<string, string>,
     [tool.fields],
   );
@@ -281,6 +289,38 @@ export function ToolForm({ tool }: ToolFormProps) {
                 onChange={(event) => handleFile(field, event.target.files)}
                 className="w-full rounded-xl border border-white/10 bg-white/[0.07] px-4 py-3 text-sm text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-cyan-200 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-slate-950"
               />
+            ) : field.type === "range" ? (
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min={field.min ?? "0"}
+                  max={field.max ?? "100"}
+                  step={field.step ?? "1"}
+                  value={inputs[field.name] !== undefined ? inputs[field.name] : (field.default !== undefined ? String(field.default) : "50")}
+                  onChange={(event) =>
+                    setInputs((current) => ({ ...current, [field.name]: event.target.value }))
+                  }
+                  className="h-1.5 w-full cursor-pointer rounded-lg bg-white/10 accent-cyan-300"
+                />
+                <span className="text-sm font-semibold text-cyan-100 min-w-8 text-right font-mono">
+                  {inputs[field.name] !== undefined ? inputs[field.name] : (field.default !== undefined ? String(field.default) : "50")}
+                </span>
+              </div>
+            ) : field.type === "checkbox" ? (
+              <div className="flex items-center gap-2 py-1">
+                <input
+                  type="checkbox"
+                  id={`field-${field.name}`}
+                  checked={inputs[field.name] === "true"}
+                  onChange={(event) =>
+                    setInputs((current) => ({ ...current, [field.name]: String(event.target.checked) }))
+                  }
+                  className="h-4 w-4 rounded border-white/10 bg-white/[0.07] text-cyan-300 outline-none focus:ring-0 focus:ring-offset-0 accent-cyan-300"
+                />
+                <label htmlFor={`field-${field.name}`} className="text-sm text-slate-300 select-none cursor-pointer">
+                  {field.placeholder || "Enable"}
+                </label>
+              </div>
             ) : (
               <input
                 required={field.required}

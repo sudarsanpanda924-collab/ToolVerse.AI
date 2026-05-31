@@ -100,7 +100,7 @@ async function exportToPdf(text: string, title: string) {
     }
 
     const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes as any], { type: "application/pdf" });
+    const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -161,6 +161,16 @@ export function OutputBox({
   }, [isStartupGenerator, output]);
 
   const displayedOutput = parsedSections ? parsedSections.cleanOutput : output;
+
+  const isTransparent =
+    filename?.toLowerCase().includes("remover") ||
+    filename?.toLowerCase().includes("watermark") ||
+    filename?.toLowerCase().includes("png") ||
+    filename?.toLowerCase().includes("svg") ||
+    download?.filename?.toLowerCase().endsWith(".png") ||
+    download?.filename?.toLowerCase().endsWith(".svg") ||
+    downloadPng !== undefined ||
+    downloadSvg !== undefined;
 
   return (
     <div className="glass-card rounded-xl p-5">
@@ -288,9 +298,9 @@ export function OutputBox({
         </div>
       ) : null}
       {imageUrl ? (
-        <div className="mb-4 overflow-hidden rounded-xl border border-white/10 bg-slate-950/50">
+        <div className={`mb-4 overflow-hidden rounded-xl border border-white/10 p-4 flex items-center justify-center ${isTransparent ? "bg-checkerboard" : "bg-slate-950/50"}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imageUrl} alt="Generated ToolVerse AI output" className="h-auto w-full" />
+          <img src={imageUrl} alt="Generated ToolVerse AI output" className="h-auto max-h-[500px] w-auto object-contain" />
         </div>
       ) : null}
       {displayedOutput && (

@@ -9,7 +9,8 @@ export type ToolCategoryId =
   | "document-conversion"
   | "audio-video"
   | "youtube-optimization"
-  | "extra-utilities";
+  | "extra-utilities"
+  | "high-traffic";
 
 export type ToolProvider =
   | "gemini"
@@ -30,7 +31,7 @@ export type ToolOutputType =
 export type ToolField = {
   name: string;
   label: string;
-  type: "text" | "textarea" | "select" | "number" | "url" | "file";
+  type: "text" | "textarea" | "select" | "number" | "url" | "file" | "range" | "checkbox";
   placeholder?: string;
   options?: string[];
   required?: boolean;
@@ -38,6 +39,10 @@ export type ToolField = {
   maxSizeMB?: number;
   helperText?: string;
   multiple?: boolean;
+  min?: number;
+  max?: number;
+  step?: number;
+  default?: string | number;
 };
 
 export type ToolFaq = {
@@ -93,15 +98,12 @@ const aiWriting = [
   "Grammar Fixer",
   "Email Subject Generator",
   "Resume Summary Generator",
-  "Cover Letter Generator",
   "Business Proposal Generator",
   "Product Review Generator",
   "Social Media Post Generator",
 ];
 
 const youtubeCreator = [
-  "YouTube Title Generator",
-  "YouTube Description Generator",
   "YouTube Tags Generator",
   "YouTube Hashtag Generator",
   "YouTube Script Outline Generator",
@@ -200,7 +202,6 @@ const pdfOcr = [
   "Sign PDF",
   "Redact PDF",
   "Compare PDF",
-  "AI PDF Summarizer",
   "Translate PDF",
   "PDF to Flashcards",
   "PDF Quiz Generator",
@@ -210,7 +211,6 @@ const pdfOcr = [
   "Receipt Scanner",
   "PDF to Audiobook",
   "Voice Note to Blog Converter",
-  "Resume ATS Score Checker",
   "PDF Metadata Viewer",
   "PDF Word Counter",
 ];
@@ -221,7 +221,6 @@ const businessFinance = [
   "Business Name Availability Checker",
   "QR Menu Builder",
   "Profit Margin Calculator",
-  "Invoice Generator",
   "ROI Calculator",
   "Break Even Calculator",
   "EMI Calculator",
@@ -235,21 +234,27 @@ const businessFinance = [
 ];
 
 const imageConversion = [
-  "JPG to PNG Converter",
-  "PNG to JPG Converter",
+  "Black & White Converter",
+  "Colorize Old Photos",
+  "Image Upscaler",
+  "JPG to PNG",
+  "PNG to JPG",
+  "Image Compressor",
+  "Image Resizer",
+  "Watermark Remover",
+  "Photo Enhancer",
+  "AI Portrait Enhancer",
+  "Face Restoration",
+  "Blur Image",
+  "Sharpen Image",
+  "Cartoon Image Maker",
   "WEBP to PNG Converter",
   "PNG to WEBP Converter",
   "JPG to WEBP Converter",
-  "Image Resizer",
-  "Image Compressor",
   "Image Cropper",
-  "Background Remover",
-  "Image Watermark Remover",
   "Image Metadata Viewer",
   "Rotate Image",
   "Flip Image",
-  "Blur Image",
-  "Sharpen Image",
   "Base64 To Image",
   "Image To Base64",
   "SVG To PNG",
@@ -281,7 +286,6 @@ const audioVideo = [
 ];
 
 const youtubeOptimization = [
-  "Thumbnail CTR Analyzer",
   "Thumbnail Roast Tool",
   "Thumbnail A/B Tester",
   "Thumbnail Text Checker",
@@ -313,7 +317,6 @@ const youtubeOptimization = [
 ];
 
 const extraUtilities = [
-  "QR Code Generator",
   "Barcode Generator",
   "Password Generator",
   "UUID Generator",
@@ -328,6 +331,24 @@ const extraUtilities = [
   "Base64 Encoder Decoder",
   "Markdown Previewer",
   "Lorem Ipsum Generator",
+];
+
+const highTraffic = [
+  "AI Humanizer",
+  "AI Detector",
+  "Resume ATS Checker",
+  "Resume Builder",
+  "Cover Letter Generator",
+  "Business Name Generator",
+  "Invoice Generator",
+  "Background Remover",
+  "Image to Text OCR",
+  "YouTube Title Generator",
+  "YouTube Description Generator",
+  "Thumbnail CTR Analyzer",
+  "AI Headshot Generator",
+  "PDF Summarizer",
+  "QR Code Generator",
 ];
 
 export const categories: ToolCategory[] = [
@@ -463,6 +484,18 @@ export const categories: ToolCategory[] = [
     imagePrompt: "3D utility grid, QR blocks, code tokens",
     audience: "developers, writers, students, and busy operations teams",
   },
+  {
+    id: "high-traffic",
+    name: "High Traffic Tools",
+    shortName: "Trending",
+    description:
+      "Our most popular and highly-requested AI and productivity tools to speed up your everyday workflows.",
+    icon: "Rocket",
+    illustration: "thumbnail-rocket",
+    accent: "from-amber-400 via-rose-500 to-violet-600",
+    imagePrompt: "3D rocket launching, high speed, traffic charts, glassmorphism",
+    audience: "everyone looking for fast AI solutions and productivity helpers",
+  },
 ];
 
 const toolNamesByCategory: Record<ToolCategoryId, string[]> = {
@@ -477,6 +510,7 @@ const toolNamesByCategory: Record<ToolCategoryId, string[]> = {
   "audio-video": audioVideo,
   "youtube-optimization": youtubeOptimization,
   "extra-utilities": extraUtilities,
+  "high-traffic": highTraffic,
 };
 
 const categoryMap = Object.fromEntries(
@@ -499,6 +533,10 @@ const slugOverrides: Record<string, string> = {
   "Background Generator": "ai-background-generator",
   "Thumbnail Text Generator": "ai-thumbnail-text-generator",
   "Color Palette Generator": "ai-color-palette-generator",
+  "Black & White Converter": "black-white-converter",
+  "Watermark Remover": "watermark-remover",
+  "PDF Summarizer": "pdf-summarizer",
+  "Resume ATS Checker": "resume-ats-checker",
 };
 
 const pdfSlugOverrides: Record<string, string> = {
@@ -513,6 +551,7 @@ const pdfSlugOverrides: Record<string, string> = {
   "PowerPoint to PDF": "ppt-to-pdf-converter",
   "Excel to PDF": "excel-to-pdf-converter",
   "PDF to JPG": "pdf-to-jpg-converter",
+  "PDF to PNG": "pdf-to-png-converter",
   "PDF to Word": "pdf-to-word-converter",
   "PDF to PowerPoint": "pdf-to-ppt",
   "PDF to Excel": "pdf-to-excel-converter",
@@ -523,11 +562,9 @@ const pdfSlugOverrides: Record<string, string> = {
 };
 
 const slugFor = (name: string, category: ToolCategoryId) =>
-  category === "ai-image"
-    ? slugOverrides[name] || slugify(name)
-    : category === "pdf-ocr"
-      ? pdfSlugOverrides[name] || slugify(name)
-      : slugify(name);
+  category === "pdf-ocr"
+    ? pdfSlugOverrides[name] || slugify(name)
+    : slugOverrides[name] || slugify(name);
 
 const titleCaseKeyword = (toolName: string) =>
   toolName
@@ -1258,9 +1295,482 @@ const urlFields: ToolField[] = [
   },
 ];
 
+const blackWhiteFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload Image",
+    type: "file",
+    required: true,
+    accept: "image/png,image/jpeg,image/webp",
+    maxSizeMB: 8,
+  },
+  {
+    name: "intensity",
+    label: "Grayscale Intensity",
+    type: "range",
+    min: 0,
+    max: 100,
+    step: 1,
+    default: 100,
+    helperText: "Adjust the intensity of the black and white effect.",
+  },
+  {
+    name: "highContrast",
+    label: "High Contrast Mode",
+    type: "checkbox",
+    placeholder: "Enable High Contrast",
+    default: "false",
+  },
+  {
+    name: "format",
+    label: "Output Format",
+    type: "select",
+    options: ["PNG", "JPG"],
+    default: "PNG",
+  },
+];
+
+const colorizeFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload Black & White Photo",
+    type: "file",
+    required: true,
+    accept: "image/png,image/jpeg,image/webp",
+    maxSizeMB: 8,
+  },
+];
+
+const bgRemoverFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload Image",
+    type: "file",
+    required: true,
+    accept: "image/png,image/jpeg,image/webp",
+    maxSizeMB: 8,
+  },
+];
+
+const upscalerFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload Image",
+    type: "file",
+    required: true,
+    accept: "image/png,image/jpeg,image/webp",
+    maxSizeMB: 8,
+  },
+  {
+    name: "scale",
+    label: "Upscale Multiplier",
+    type: "select",
+    options: ["2x", "4x"],
+    default: "2x",
+  },
+];
+
+const jpgToPngFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload JPG Image",
+    type: "file",
+    required: true,
+    accept: "image/jpeg,image/jpg",
+    maxSizeMB: 8,
+  },
+];
+
+const pngToJpgFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload PNG Image",
+    type: "file",
+    required: true,
+    accept: "image/png",
+    maxSizeMB: 8,
+  },
+  {
+    name: "background",
+    label: "Flatten Background Color (for transparency)",
+    type: "text",
+    placeholder: "#ffffff",
+    default: "#ffffff",
+    helperText: "Solid color to replace transparent parts, e.g., #ffffff, #000000",
+  },
+];
+
+const compressorFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload Image",
+    type: "file",
+    required: true,
+    accept: "image/png,image/jpeg,image/webp",
+    maxSizeMB: 8,
+  },
+  {
+    name: "quality",
+    label: "Compression Quality",
+    type: "range",
+    min: 1,
+    max: 100,
+    step: 1,
+    default: 80,
+    helperText: "Lower quality yields smaller file size.",
+  },
+];
+
+const resizerFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload Image",
+    type: "file",
+    required: true,
+    accept: "image/png,image/jpeg,image/webp",
+    maxSizeMB: 8,
+  },
+  {
+    name: "preset",
+    label: "Size Preset",
+    type: "select",
+    options: [
+      "Custom",
+      "YouTube Thumbnail (1280x720)",
+      "Instagram Post (1080x1080)",
+      "Instagram Story (1080x1920)",
+      "Website Banner (1920x600)",
+    ],
+    default: "Custom",
+  },
+  {
+    name: "width",
+    label: "Width (px)",
+    type: "number",
+    placeholder: "1280",
+    required: false,
+  },
+  {
+    name: "height",
+    label: "Height (px)",
+    type: "number",
+    placeholder: "720",
+    required: false,
+  },
+  {
+    name: "lockAspectRatio",
+    label: "Maintain Aspect Ratio",
+    type: "checkbox",
+    placeholder: "Lock Aspect Ratio",
+    default: "true",
+  },
+];
+
+const watermarkFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload Image",
+    type: "file",
+    required: true,
+    accept: "image/png,image/jpeg,image/webp",
+    maxSizeMB: 8,
+  },
+  {
+    name: "mode",
+    label: "Removal Mode",
+    type: "select",
+    options: ["AI Watermark Cleanup", "Manual Crop/Blur Fallback"],
+    default: "AI Watermark Cleanup",
+  },
+];
+
+const photoEnhancerFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload Image",
+    type: "file",
+    required: true,
+    accept: "image/png,image/jpeg,image/webp",
+    maxSizeMB: 8,
+  },
+  {
+    name: "autoEnhance",
+    label: "Auto Enhance",
+    type: "checkbox",
+    placeholder: "Apply Auto Enhancements",
+    default: "true",
+  },
+  {
+    name: "brightness",
+    label: "Brightness",
+    type: "range",
+    min: 50,
+    max: 150,
+    step: 1,
+    default: 100,
+    helperText: "Adjust brightness (100 is normal).",
+  },
+  {
+    name: "contrast",
+    label: "Contrast",
+    type: "range",
+    min: 50,
+    max: 150,
+    step: 1,
+    default: 100,
+    helperText: "Adjust contrast (100 is normal).",
+  },
+  {
+    name: "saturation",
+    label: "Saturation",
+    type: "range",
+    min: 50,
+    max: 150,
+    step: 1,
+    default: 100,
+    helperText: "Adjust saturation (100 is normal).",
+  },
+];
+
+const aiPortraitEnhancerFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload Portrait Image",
+    type: "file",
+    required: true,
+    accept: "image/png,image/jpeg,image/webp",
+    maxSizeMB: 8,
+  },
+  {
+    name: "skinDetail",
+    label: "Preserve Skin Details",
+    type: "checkbox",
+    placeholder: "Keep natural texture (no beauty filter)",
+    default: "true",
+  },
+  {
+    name: "eyeClarity",
+    label: "Enhance Eye Clarity",
+    type: "checkbox",
+    placeholder: "Sharpen eyes and details",
+    default: "true",
+  },
+];
+
+const faceRestorationFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload Blurry/Old Photo",
+    type: "file",
+    required: true,
+    accept: "image/png,image/jpeg,image/webp",
+    maxSizeMB: 8,
+  },
+];
+
+const blurImageFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload Image",
+    type: "file",
+    required: true,
+    accept: "image/png,image/jpeg,image/webp",
+    maxSizeMB: 8,
+  },
+  {
+    name: "mode",
+    label: "Blur Mode",
+    type: "select",
+    options: ["Blur Entire Image", "Blur Background Option"],
+    default: "Blur Entire Image",
+  },
+  {
+    name: "intensity",
+    label: "Blur Intensity",
+    type: "range",
+    min: 1,
+    max: 50,
+    step: 1,
+    default: 10,
+    helperText: "Adjust intensity (1 to 50px).",
+  },
+];
+
+const sharpenImageFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload Image",
+    type: "file",
+    required: true,
+    accept: "image/png,image/jpeg,image/webp",
+    maxSizeMB: 8,
+  },
+  {
+    name: "intensity",
+    label: "Sharpen Intensity",
+    type: "range",
+    min: 1,
+    max: 20,
+    step: 1,
+    default: 5,
+    helperText: "Adjust sharpening strength.",
+  },
+];
+
+const cartoonImageFields: ToolField[] = [
+  {
+    name: "file",
+    label: "Upload Image",
+    type: "file",
+    required: true,
+    accept: "image/png,image/jpeg,image/webp",
+    maxSizeMB: 8,
+  },
+];
+
+const aiHumanizerFields: ToolField[] = [
+  {
+    name: "input",
+    label: "AI-Generated Text",
+    type: "textarea",
+    placeholder: "Paste your AI-generated text here...",
+    required: true,
+  },
+  {
+    name: "mode",
+    label: "Rewriting Style",
+    type: "select",
+    options: ["Standard", "Conversational", "Creative", "Academic", "Executive"],
+    default: "Standard",
+  },
+  {
+    name: "readability",
+    label: "Readability Level",
+    type: "select",
+    options: ["High School", "University", "Professional", "Simple English"],
+    default: "University",
+  },
+];
+
+const aiDetectorFields: ToolField[] = [
+  {
+    name: "input",
+    label: "Text to Analyze",
+    type: "textarea",
+    placeholder: "Paste the text you want to check for AI generation...",
+    required: true,
+  },
+  {
+    name: "depth",
+    label: "Analysis Depth",
+    type: "select",
+    options: ["Quick Scan", "Deep Analysis"],
+    default: "Deep Analysis",
+  },
+];
+
+const resumeBuilderFields: ToolField[] = [
+  {
+    name: "jobTitle",
+    label: "Target Job Title",
+    type: "text",
+    placeholder: "e.g. Senior Frontend Engineer",
+    required: true,
+  },
+  {
+    name: "skills",
+    label: "Key Skills & Technologies",
+    type: "textarea",
+    placeholder: "e.g. React, Next.js, TypeScript, Tailwind CSS, REST APIs",
+    required: true,
+  },
+  {
+    name: "experience",
+    label: "Work Experience",
+    type: "textarea",
+    placeholder: "e.g. Frontend Engineer at TechCorp (2022-Present): Built responsive dashboards...",
+    required: true,
+  },
+  {
+    name: "education",
+    label: "Education",
+    type: "text",
+    placeholder: "e.g. BS in Computer Science, State University",
+  },
+  {
+    name: "format",
+    label: "Output Format",
+    type: "select",
+    options: ["Markdown Resume", "Plain Text Resume", "Bullet Points Resume"],
+    default: "Markdown Resume",
+  },
+];
+
+const businessNameGeneratorFields: ToolField[] = [
+  {
+    name: "keywords",
+    label: "Business Keywords / Niche",
+    type: "text",
+    placeholder: "e.g. organic skincare, coding bootcamp, fast food",
+    required: true,
+  },
+  {
+    name: "style",
+    label: "Naming Style",
+    type: "select",
+    options: ["Modern", "Brandable", "Compound Words", "Classic/Corporate", "Short/Catchy"],
+    default: "Modern",
+  },
+  {
+    name: "length",
+    label: "Name Length Preference",
+    type: "select",
+    options: ["Any Length", "Short (1-2 syllables)", "Medium (3+ syllables)"],
+    default: "Any Length",
+  },
+];
+
+const aiHeadshotFields: ToolField[] = [
+  {
+    name: "gender",
+    label: "Gender / Portrait Style",
+    type: "select",
+    options: ["Male", "Female", "Androgynous / Neutral"],
+    default: "Male",
+  },
+  {
+    name: "ethnicity",
+    label: "Ethnicity",
+    type: "select",
+    options: ["No Preference", "Caucasian", "East Asian", "South Asian", "Black / African", "Hispanic / Latino"],
+    default: "No Preference",
+  },
+  {
+    name: "clothing",
+    label: "Clothing Style",
+    type: "select",
+    options: ["Business Formal (Suit & Tie)", "Business Casual (Blazer & Shirt)", "Casual (T-shirt/Sweater)", "Medical / Lab Coat", "Academic / Gown"],
+    default: "Business Formal (Suit & Tie)",
+  },
+  {
+    name: "background",
+    label: "Background Setting",
+    type: "select",
+    options: ["Modern Office", "Solid Color (Studio Gray)", "Solid Color (Studio Blue)", "City Street (Bokeh)", "Nature / Park (Bokeh)"],
+    default: "Modern Office",
+  },
+  {
+    name: "expression",
+    label: "Expression",
+    type: "select",
+    options: ["Confident Smile", "Friendly/Warm", "Serious/Professional"],
+    default: "Friendly/Warm",
+  },
+];
+
 const providerFor = (name: string, category: ToolCategoryId): ToolProvider => {
   const normalized = name.toLowerCase();
-  if (category === "ai-image") {
+  if (category === "ai-image" || normalized.includes("headshot")) {
     return "pollinations";
   }
   if (category === "youtube-optimization") return "groq";
@@ -1278,7 +1788,11 @@ const providerFor = (name: string, category: ToolCategoryId): ToolProvider => {
     normalized.includes("speech") ||
     normalized.includes("voice note") ||
     normalized.includes("background remover") ||
-    normalized.includes("noise")
+    normalized.includes("noise") ||
+    normalized.includes("colorize") ||
+    normalized.includes("restoration") ||
+    normalized.includes("cartoon") ||
+    normalized.includes("portrait")
   ) {
     return "huggingface";
   }
@@ -1301,6 +1815,7 @@ const isAiTool = (name: string, category: ToolCategoryId) => {
   const normalized = name.toLowerCase();
   const pdfIntelligenceTools = new Set([
     "ai pdf summarizer",
+    "pdf summarizer",
     "translate pdf",
     "pdf to flashcards",
     "pdf quiz generator",
@@ -1318,6 +1833,16 @@ const isAiTool = (name: string, category: ToolCategoryId) => {
   ) {
     return true;
   }
+  const aiTrafficTools = new Set([
+    "cover letter generator",
+    "youtube title generator",
+    "youtube description generator",
+    "thumbnail ctr analyzer",
+    "pdf summarizer",
+  ]);
+  if (category === "high-traffic" && aiTrafficTools.has(normalized)) {
+    return true;
+  }
   return [
     "ocr",
     "scanner",
@@ -1333,17 +1858,31 @@ const isAiTool = (name: string, category: ToolCategoryId) => {
     "text to speech",
     "voice note",
     "business name availability",
+    "colorize",
+    "portrait enhancer",
+    "restoration",
+    "cartoon",
+    "humanizer",
+    "detector",
+    "builder",
+    "name generator",
+    "headshot",
   ].some((keyword) => normalized.includes(keyword));
 };
 
 const outputFor = (name: string, category: ToolCategoryId): ToolOutputType => {
   const normalized = name.toLowerCase();
-  if (normalized.includes("score") || normalized.includes("analyzer") || normalized.includes("checker")) {
+  if (
+    normalized.includes("score") ||
+    normalized.includes("analyzer") ||
+    normalized.includes("checker") ||
+    normalized.includes("detector")
+  ) {
     return "score";
   }
-  if (category === "ai-image") return "image";
+  if (category === "ai-image" || normalized.includes("headshot")) return "image";
   if (category === "pdf-ocr") {
-    return ["ai pdf summarizer", "translate pdf", "pdf quiz generator", "pdf key points extractor", "pdf study notes generator"].includes(normalized)
+    return ["ai pdf summarizer", "pdf summarizer", "translate pdf", "pdf quiz generator", "pdf key points extractor", "pdf study notes generator"].includes(normalized)
       ? "text"
       : "file";
   }
@@ -1351,6 +1890,7 @@ const outputFor = (name: string, category: ToolCategoryId): ToolOutputType => {
     category === "image-conversion" ||
     category === "document-conversion" ||
     category === "audio-video" ||
+    normalized.includes("remover") ||
     normalized.includes("compressor") ||
     normalized.includes("merger") ||
     normalized.includes("splitter")
@@ -1359,10 +1899,36 @@ const outputFor = (name: string, category: ToolCategoryId): ToolOutputType => {
   }
   if (category === "business-finance") return "calculator";
   if (category === "extra-utilities") return normalized.includes("json") || normalized.includes("xml") ? "code" : "text";
+  if (category === "high-traffic" && ["pdf-summarizer", "pdf-translator", "pdf-summarizer-extractor"].includes(normalized)) {
+    return "text";
+  }
+  if (category === "high-traffic" && normalized === "pdf-summarizer") return "text";
   return "text";
 };
 
 const fieldsFor = (name: string, category: ToolCategoryId): ToolField[] => {
+  if (name === "AI Humanizer") return aiHumanizerFields;
+  if (name === "AI Detector") return aiDetectorFields;
+  if (name === "Resume Builder") return resumeBuilderFields;
+  if (name === "Business Name Generator") return businessNameGeneratorFields;
+  if (name === "AI Headshot Generator") return aiHeadshotFields;
+
+  if (name === "Black & White Converter") return blackWhiteFields;
+  if (name === "Colorize Old Photos") return colorizeFields;
+  if (name === "Background Remover") return bgRemoverFields;
+  if (name === "Image Upscaler") return upscalerFields;
+  if (name === "JPG to PNG") return jpgToPngFields;
+  if (name === "PNG to JPG") return pngToJpgFields;
+  if (name === "Image Compressor") return compressorFields;
+  if (name === "Image Resizer") return resizerFields;
+  if (name === "Watermark Remover") return watermarkFields;
+  if (name === "Photo Enhancer") return photoEnhancerFields;
+  if (name === "AI Portrait Enhancer") return aiPortraitEnhancerFields;
+  if (name === "Face Restoration") return faceRestorationFields;
+  if (name === "Blur Image") return blurImageFields;
+  if (name === "Sharpen Image") return sharpenImageFields;
+  if (name === "Cartoon Image Maker") return cartoonImageFields;
+
   if (name === "AI Product Description Generator") return productDescriptionFields;
   if (name === "AI Bio Generator") return bioGeneratorFields;
   if (name === "AI Tweet Rewriter") return tweetRewriterFields;
@@ -1400,7 +1966,7 @@ const fieldsFor = (name: string, category: ToolCategoryId): ToolField[] => {
       "Protect PDF",
       "Sign PDF",
       "Redact PDF",
-      "AI PDF Summarizer",
+      "PDF Summarizer",
       "Translate PDF",
       "PDF to Flashcards",
       "PDF Quiz Generator",
@@ -1422,7 +1988,6 @@ const fieldsFor = (name: string, category: ToolCategoryId): ToolField[] => {
       "PDF to Excel",
       "PDF to PDF/A",
       "Unlock PDF",
-      "PDF Summarizer",
       "PDF Text Extractor",
       "PDF to Audiobook",
       "PDF Metadata Viewer",
@@ -1431,12 +1996,13 @@ const fieldsFor = (name: string, category: ToolCategoryId): ToolField[] => {
       "PDF Watermark Remover",
       "PDF Keyword Extractor",
       "Resume ATS Score Checker",
+      "Resume ATS Checker",
     ].includes(name)
   ) {
     return pdfOnlyFields;
   }
   if (name === "Scan To PDF") return scanToPdfFields;
-  if (name === "Screenshot to Text Extractor") return imageOcrFields;
+  if (name === "Screenshot to Text Extractor" || name === "Image to Text OCR") return imageOcrFields;
   if (
     [
       "OCR PDF Converter",
@@ -1446,7 +2012,14 @@ const fieldsFor = (name: string, category: ToolCategoryId): ToolField[] => {
   ) {
     return pdfOrImageOcrFields;
   }
-  if (category === "youtube-creator" || category === "youtube-optimization") return youtubeFields;
+  if (
+    category === "youtube-creator" ||
+    category === "youtube-optimization" ||
+    name.startsWith("YouTube") ||
+    name.startsWith("Thumbnail")
+  ) {
+    return youtubeFields;
+  }
   if (category === "instagram-creator") return instagramFields;
   if (category === "ai-image") return imageFields;
   if (category === "business-finance") return calculatorFields;

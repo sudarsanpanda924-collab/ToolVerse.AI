@@ -88,6 +88,50 @@ function buildSystemPrompt({ tool }: AiRouterRequest) {
     ].join("\n");
   }
 
+  if (tool.slug === "ai-humanizer") {
+    return [
+      "You are ToolVerse AI running the AI Humanizer.",
+      "Your goal is to rewrite AI-generated text to make it sound highly natural, human-written, engaging, and indistinguishable from human writing.",
+      "Rules:",
+      "- Preserve the original meaning, facts, and key information exactly.",
+      "- Use a natural flow with varied sentence lengths (short, punchy sentences mixed with longer, descriptive ones).",
+      "- Avoid repetitive sentence structures and cliches common to AI writing (such as 'in conclusion', 'it is important to note', 'delve', 'testament').",
+      "- Use idioms, personal touch, active voice, and conversational transitions naturally.",
+      "- Do not add explanations, warnings, or intro/outro remarks. Return only the rewritten text directly.",
+    ].join("\n");
+  }
+
+  if (tool.slug === "ai-detector") {
+    return [
+      "You are ToolVerse AI running the AI Detector.",
+      "Your goal is to analyze the user-provided text for signs of AI generation and output a detailed score assessment.",
+      "Analyze perplexity (predictability of words) and burstiness (variance in sentence length and structure).",
+      "Explain your reasoning in a clear, structured way.",
+      "Output your assessment exactly as text showing the AI Probability score clearly at the top.",
+    ].join("\n");
+  }
+
+  if (tool.slug === "resume-builder") {
+    return [
+      "You are ToolVerse AI running the Resume Builder.",
+      "You write polished, professional, and impact-driven resumes or CV content tailored for specific job roles based on user-provided skills, experience, and education.",
+      "Rules:",
+      "- Format the response in clean, professional markdown or plain text as requested.",
+      "- Focus on achievements, using action verbs (e.g. Led, Developed, Optimized, Architected) and quantifiable metrics/results where possible.",
+      "- Do not invent fake jobs, degrees, or certifications.",
+      "- Return the resume directly without introductory or concluding remarks.",
+    ].join("\n");
+  }
+
+  if (tool.slug === "business-name-generator") {
+    return [
+      "You are ToolVerse AI running the Business Name Generator.",
+      "You generate original, creative, brandable, and memorable business names matching user keywords and selected style.",
+      "Provide 15 name suggestions with a brief one-sentence branding concept or tagline for each.",
+      "Return only the suggestions in a clean markdown table or list.",
+    ].join("\n");
+  }
+
   return [
     `You are ToolVerse AI running the ${tool.name}.`,
     `Category: ${tool.category}.`,
@@ -362,6 +406,64 @@ function buildUserPrompt({ tool, inputs }: AiRouterRequest) {
       "",
       "## Hashtag Suggestions",
       "Provide 4-6 highly relevant professional hashtags for LinkedIn search visibility.",
+    ].join("\n");
+  }
+
+  if (tool.slug === "ai-humanizer") {
+    return [
+      "Humanize this AI-generated text using the following options:",
+      "",
+      `Original Text: ${inputs.input || ""}`,
+      `Style/Tone: ${inputs.mode || "Standard"}`,
+      `Readability: ${inputs.readability || "University"}`,
+      "",
+      "Provide the humanized version of the text directly, matching the requested style and readability level. Make it sound warm, professional, and natural.",
+    ].join("\n");
+  }
+
+  if (tool.slug === "ai-detector") {
+    return [
+      "Analyze the following text for signs of AI generation:",
+      "",
+      `Text: ${inputs.input || ""}`,
+      `Analysis Depth: ${inputs.depth || "Deep Analysis"}`,
+      "",
+      "Output format:",
+      "## AI Probability Score: [Score]%",
+      "",
+      "### Analysis Summary",
+      "- Perplexity Score: [Low/Medium/High]",
+      "- Burstiness Score: [Low/Medium/High]",
+      "- Verdict: [e.g. Highly likely to be human-written / Likely AI-generated]",
+      "",
+      "### Detailed Observations",
+      "[Write a paragraph analyzing vocabulary, flow, repetitive structures, and sentence variability]",
+    ].join("\n");
+  }
+
+  if (tool.slug === "resume-builder") {
+    return [
+      "Create a professional resume using these inputs:",
+      "",
+      `Target Job Title: ${inputs.jobTitle || ""}`,
+      `Key Skills & Technologies: ${inputs.skills || ""}`,
+      `Work Experience: ${inputs.experience || ""}`,
+      `Education: ${inputs.education || ""}`,
+      `Output Format: ${inputs.format || "Markdown Resume"}`,
+      "",
+      "Ensure the work experience contains bullet points emphasizing business impact, active verbs, and clean formatting.",
+    ].join("\n");
+  }
+
+  if (tool.slug === "business-name-generator") {
+    return [
+      "Generate 15 creative business name suggestions using these inputs:",
+      "",
+      `Keywords/Niche: ${inputs.keywords || ""}`,
+      `Naming Style: ${inputs.style || "Modern"}`,
+      `Length Preference: ${inputs.length || "Any Length"}`,
+      "",
+      "Format the output as a clean markdown list or table showing: Name | Tagline / Concept.",
     ].join("\n");
   }
 
@@ -917,7 +1019,11 @@ export function providersForTool({ tool }: AiRouterRequest): AiProviderId[] {
     tool.slug === "ai-tweet-rewriter" ||
     tool.slug === "freelancer-proposal-generator" ||
     tool.slug === "ai-startup-idea-generator" ||
-    tool.slug === "linkedin-post-formatter"
+    tool.slug === "linkedin-post-formatter" ||
+    tool.slug === "ai-humanizer" ||
+    tool.slug === "ai-detector" ||
+    tool.slug === "resume-builder" ||
+    tool.slug === "business-name-generator"
   ) {
     return ["gemini", "groq"];
   }

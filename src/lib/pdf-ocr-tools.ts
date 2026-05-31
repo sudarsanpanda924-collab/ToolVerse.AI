@@ -136,6 +136,8 @@ export const pdfOcrToolSlugs = new Set([
   "pdf-password-remover",
   "pdf-watermark-remover",
   "resume-ats-score-checker",
+  "resume-ats-checker",
+  "image-to-text-ocr",
   "pdf-translator",
 ]);
 
@@ -2256,6 +2258,7 @@ export async function runPdfOcrTool(slug: string, inputs: ToolInputs) {
     case "pdf-summarizer":
       return summarizePdf(inputs);
     case "screenshot-to-text-extractor":
+    case "image-to-text-ocr":
       return screenshotToText(inputs);
     case "ocr-pdf-converter":
       return ocrPdfConverter(inputs);
@@ -2288,6 +2291,7 @@ export async function runPdfOcrTool(slug: string, inputs: ToolInputs) {
     case "pdf-watermark-remover":
       return pdfWatermarkRemover(inputs);
     case "resume-ats-score-checker":
+    case "resume-ats-checker":
       return resumeAtsScore(inputs);
     case "pdf-translator":
       return pdfTranslator(inputs);

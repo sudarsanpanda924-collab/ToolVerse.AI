@@ -40,7 +40,7 @@ const PDF_SECTIONS = [
   },
   {
     title: "7. PDF INTELLIGENCE",
-    toolNames: ["AI PDF Summarizer", "Translate PDF"]
+    toolNames: ["PDF Summarizer", "Translate PDF"]
   }
 ];
 

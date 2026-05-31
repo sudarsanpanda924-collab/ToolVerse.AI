@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, type DragEvent } from "react";
+import { useState, useRef, type DragEvent } from "react";
 import { 
   Upload, Trash2, Copy, Download, RefreshCw, Undo, Redo, Sparkles, 
   Sliders, Image as ImageIcon, Layers, ZoomIn, Scissors, History, 
@@ -31,6 +31,8 @@ type HistoryItem = {
   date: string;
 };
 
+type DownloadFormat = "png" | "jpg" | "webp";
+
 const ASPECT_RATIOS = [
   { id: "1:1", label: "1:1", desc: "Square (Post)", width: 40, height: 40 },
   { id: "16:9", label: "16:9", desc: "Landscape (YouTube)", width: 56, height: 32 },
@@ -42,6 +44,7 @@ const ASPECT_RATIOS = [
 
 const QUALITY_OPTIONS = ["Standard", "HD", "Ultra HD"];
 const IMAGE_COUNTS = [1, 2, 4, 8];
+const DOWNLOAD_FORMATS = ["png", "jpg", "webp"] as const;
 
 const STYLE_PRESETS = [
   { name: "Realistic", icon: "📸" },
@@ -63,6 +66,25 @@ const STYLE_PRESETS = [
   { name: "Fashion Photography", icon: "👗" },
   { name: "YouTube Thumbnail", icon: "📺" }
 ];
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function loadStoredHistory(): HistoryItem[] {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const stored = localStorage.getItem("toolverse-image-history");
+    if (!stored) return [];
+
+    const parsed: unknown = JSON.parse(stored);
+    return Array.isArray(parsed) ? (parsed as HistoryItem[]) : [];
+  } catch (err) {
+    console.error("Failed to load history", err);
+    return [];
+  }
+}
 
 export function AiImageSuite({ tool, usage, setUsage }: AiImageSuiteProps) {
   // Inputs State
@@ -91,22 +113,10 @@ export function AiImageSuite({ tool, usage, setUsage }: AiImageSuiteProps) {
   // Outputs State
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
-  const [downloadFormat, setDownloadFormat] = useState<"png" | "jpg" | "webp">("png");
+  const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("png");
 
   // History State
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-
-  // Load History from Local Storage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("toolverse-image-history");
-      if (stored) {
-        setHistory(JSON.parse(stored));
-      }
-    } catch (err) {
-      console.error("Failed to load history", err);
-    }
-  }, []);
+  const [history, setHistory] = useState<HistoryItem[]>(loadStoredHistory);
 
   // Save History Helper
   const saveHistory = (newHistory: HistoryItem[]) => {
@@ -198,8 +208,8 @@ export function AiImageSuite({ tool, usage, setUsage }: AiImageSuiteProps) {
       } else {
         setPrompt(data.result);
       }
-    } catch (err: any) {
-      setError(err.message || "Prompt assistant failed.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Prompt assistant failed."));
     } finally {
       setAssistLoading(false);
     }
@@ -286,9 +296,9 @@ export function AiImageSuite({ tool, usage, setUsage }: AiImageSuiteProps) {
       };
 
       saveHistory([newHistoryItem, ...history]);
-    } catch (err: any) {
+    } catch (err: unknown) {
       clearInterval(interval);
-      setError(err.message || "AI image generation failed.");
+      setError(getErrorMessage(err, "AI image generation failed."));
     } finally {
       setLoading(false);
       setLoadingStep("");
@@ -333,8 +343,8 @@ export function AiImageSuite({ tool, usage, setUsage }: AiImageSuiteProps) {
         );
         saveHistory(updatedHistory);
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to process image edit.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to process image edit."));
     } finally {
       setEditLoadingAction(null);
     }
@@ -818,10 +828,10 @@ export function AiImageSuite({ tool, usage, setUsage }: AiImageSuiteProps) {
                       <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400">
                         <span>Format</span>
                         <div className="flex gap-1.5">
-                          {["png", "jpg", "webp"].map((f) => (
+                          {DOWNLOAD_FORMATS.map((f) => (
                             <button
                               key={f}
-                              onClick={() => setDownloadFormat(f as any)}
+                              onClick={() => setDownloadFormat(f)}
                               className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold transition ${
                                 downloadFormat === f 
                                   ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20" 
@@ -900,7 +910,7 @@ export function AiImageSuite({ tool, usage, setUsage }: AiImageSuiteProps) {
                   <div className="pt-4 grid grid-cols-2 gap-2 text-left">
                     <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl text-[10px] text-slate-300">
                       <span className="font-bold text-cyan-400 block mb-1">💡 Quick Pro Tip:</span>
-                      Use the "Enhance" assistant button under prompt input to automatically polish details!
+                      Use the &quot;Enhance&quot; assistant button under prompt input to automatically polish details!
                     </div>
                     <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl text-[10px] text-slate-300">
                       <span className="font-bold text-cyan-400 block mb-1">🖼️ Upload References:</span>

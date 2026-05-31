@@ -20,7 +20,6 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(base64Data, "base64");
 
     let outBuffer: Buffer;
-    let mimeType = "image/png";
 
     switch (action) {
       case "upscale_2x": {

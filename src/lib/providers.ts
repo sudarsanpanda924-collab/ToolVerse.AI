@@ -64,6 +64,14 @@ function parsePositiveNumber(value: string | undefined, label: string) {
   return parsed;
 }
 
+function unknownErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function unknownErrorName(error: unknown) {
+  return error instanceof Error ? error.name : "";
+}
+
 function calculateGst(inputs: ToolInputs) {
   const amount = parsePositiveNumber(inputs.amount || inputs.valueA, "Amount");
   const gstRate = parsePositiveNumber(inputs.gstRate || inputs.valueB, "GST rate");
@@ -101,7 +109,15 @@ function calculateGst(inputs: ToolInputs) {
 }
 
 async function pollinationsImage(tool: Tool, inputs: ToolInputs): Promise<ProviderResult> {
-  const promptInput = inputs.prompt || inputs.topic || tool.name;
+  let promptInput = inputs.prompt || inputs.topic || tool.name;
+  if (tool.slug === "ai-headshot-generator") {
+    const gender = inputs.gender || "Male";
+    const ethnicity = inputs.ethnicity === "No Preference" ? "" : inputs.ethnicity;
+    const clothing = inputs.clothing || "Business Formal (Suit & Tie)";
+    const background = inputs.background || "Modern Office";
+    const expression = inputs.expression || "Friendly/Warm";
+    promptInput = `A professional corporate headshot of a ${expression} ${ethnicity} ${gender} wearing ${clothing}, setting is ${background}, professional corporate portrait photography, sharp focus, 8k resolution, studio lighting, highly detailed face and eyes`;
+  }
 
   // Style mapping (18 presets)
   const style = inputs.style || "Premium 3D";
@@ -269,6 +285,9 @@ export async function runAiTool(tool: Tool, inputs: ToolInputs): Promise<Provide
   return runAiRouter({ tool, inputs });
 }
 
+type SVGMockTextNode = { text: string };
+type SVGMockChild = SVGElementMock | SVGMockTextNode;
+
 class SVGElementMock {
   tagName: string;
   attributes: Record<string, string>;
@@ -283,11 +302,11 @@ class SVGElementMock {
   setAttribute(name: string, value: string) {
     this.attributes[name] = value;
   }
-  setAttributeNS(ns: string, name: string, value: string) {
+  setAttributeNS(_ns: string, name: string, value: string) {
     this.attributes[name] = value;
   }
-  appendChild(child: any) {
-    if (child && child.text !== undefined) {
+  appendChild(child: SVGMockChild) {
+    if ("text" in child) {
       this.textContent = child.text;
     } else {
       this.children.push(child);
@@ -308,7 +327,7 @@ class SVGElementMock {
 }
 
 function elementToSvgString(el: SVGElementMock): string {
-  let attrs = Object.entries(el.attributes)
+  const attrs = Object.entries(el.attributes)
     .map(([k, v]) => `${k}="${v}"`)
     .join(" ");
   if (el.children.length === 0) {
@@ -317,7 +336,7 @@ function elementToSvgString(el: SVGElementMock): string {
     }
     return `<${el.tagName} ${attrs} />`;
   }
-  let childrenStr = el.children.map(elementToSvgString).join("\n");
+  const childrenStr = el.children.map(elementToSvgString).join("\n");
   return `<${el.tagName} ${attrs}>\n${childrenStr}\n</${el.tagName}>`;
 }
 
@@ -417,16 +436,17 @@ export async function runLocalTool(tool: Tool, inputs: ToolInputs): Promise<stri
         lineColor,
       });
       pngBase64 = canvas.toBuffer("image/png").toString("base64");
-    } catch (err: any) {
-      throw new Error(`Failed to generate barcode image: ${err.message || err}`);
+    } catch (err: unknown) {
+      throw new Error(`Failed to generate barcode image: ${unknownErrorMessage(err)}`);
     }
 
     // 2. Generate SVG using DOM Mock
     let svgString = "";
     try {
-      const originalDocument = global.document;
-      global.document = {
-        createElementNS(ns: string, tagName: string) {
+      const globalWithDocument = globalThis as typeof globalThis & { document?: Document };
+      const originalDocument = globalWithDocument.document;
+      globalWithDocument.document = {
+        createElementNS(_ns: string, tagName: string) {
           return new SVGElementMock(tagName);
         },
         createElement(tagName: string) {
@@ -440,27 +460,34 @@ export async function runLocalTool(tool: Tool, inputs: ToolInputs): Promise<stri
             getBoundingClientRect() {
               return { width: 50, height: 10 };
             }
-          } as any;
+          } as unknown as HTMLElement;
         },
         createTextNode(text: string) {
-          return { text } as any;
+          return { text } as unknown as Text;
         }
-      } as any;
+      } as unknown as Document;
 
-      const mockSvg = new SVGElementMock("svg");
-      JsBarcode(mockSvg, rawInput, {
-        format: barcodeType,
-        width,
-        height,
-        displayValue,
-        background,
-        lineColor,
-      });
+      try {
+        const mockSvg = new SVGElementMock("svg");
+        JsBarcode(mockSvg, rawInput, {
+          format: barcodeType,
+          width,
+          height,
+          displayValue,
+          background,
+          lineColor,
+        });
 
-      global.document = originalDocument; // Restore document
-      svgString = elementToSvgString(mockSvg);
-    } catch (err: any) {
-      throw new Error(`Failed to generate barcode SVG: ${err.message || err}`);
+        svgString = elementToSvgString(mockSvg);
+      } finally {
+        if (originalDocument) {
+          globalWithDocument.document = originalDocument;
+        } else {
+          Reflect.deleteProperty(globalWithDocument, "document");
+        }
+      }
+    } catch (err: unknown) {
+      throw new Error(`Failed to generate barcode SVG: ${unknownErrorMessage(err)}`);
     }
 
     const svgBase64 = Buffer.from(svgString, "utf8").toString("base64");
@@ -654,11 +681,13 @@ export async function runLocalTool(tool: Tool, inputs: ToolInputs): Promise<stri
       } finally {
         await parser.destroy();
       }
-    } catch (err: any) {
-      if (err.name === "PasswordException" || err.message?.includes("password")) {
+    } catch (err: unknown) {
+      const name = unknownErrorName(err);
+      const message = unknownErrorMessage(err);
+      if (name === "PasswordException" || message.includes("password")) {
         throw new Error("Password-protected PDFs are not supported. Please remove the password and try again.");
       }
-      if (err.name === "InvalidPDFException" || err.message?.includes("Invalid PDF")) {
+      if (name === "InvalidPDFException" || message.includes("Invalid PDF")) {
         throw new Error("The uploaded file is not a valid PDF or is corrupted.");
       }
       throw err;
@@ -719,11 +748,13 @@ export async function runLocalTool(tool: Tool, inputs: ToolInputs): Promise<stri
       } finally {
         await parser.destroy();
       }
-    } catch (err: any) {
-      if (err.name === "PasswordException" || err.message?.includes("password")) {
+    } catch (err: unknown) {
+      const name = unknownErrorName(err);
+      const message = unknownErrorMessage(err);
+      if (name === "PasswordException" || message.includes("password")) {
         throw new Error("Password-protected PDFs are not supported. Please remove the password and try again.");
       }
-      if (err.name === "InvalidPDFException" || err.message?.includes("Invalid PDF")) {
+      if (name === "InvalidPDFException" || message.includes("Invalid PDF")) {
         throw new Error("The uploaded file is not a valid PDF or is corrupted.");
       }
       throw err;

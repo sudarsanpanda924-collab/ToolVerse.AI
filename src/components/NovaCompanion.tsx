@@ -52,8 +52,17 @@ const GREETING: Record<string, string> = {
     "You showed up — and that's already winning! 🔥 I'm Nova, your motivational companion. What dream are we chasing today?",
 };
 
+function createGreetingMessage(mood: string): ChatMessage {
+  return {
+    id: "greeting",
+    role: "assistant",
+    content: GREETING[mood] || GREETING.friendly,
+    timestamp: Date.now(),
+  };
+}
+
 export function NovaCompanion() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [createGreetingMessage("friendly")]);
   const [input, setInput] = useState("");
   const [mood, setMood] = useState("friendly");
   const [loading, setLoading] = useState(false);
@@ -70,18 +79,6 @@ export function NovaCompanion() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  // Add greeting when mood changes
-  useEffect(() => {
-    setMessages([
-      {
-        id: "greeting",
-        role: "assistant",
-        content: GREETING[mood] || GREETING.friendly,
-        timestamp: Date.now(),
-      },
-    ]);
-  }, [mood]);
 
   // Speak reply
   const speak = useCallback(
@@ -202,15 +199,14 @@ export function NovaCompanion() {
     }
   };
 
+  const handleMoodChange = (nextMood: string) => {
+    if (nextMood === mood) return;
+    setMood(nextMood);
+    setMessages([createGreetingMessage(nextMood)]);
+  };
+
   const clearChat = () => {
-    setMessages([
-      {
-        id: "greeting",
-        role: "assistant",
-        content: GREETING[mood] || GREETING.friendly,
-        timestamp: Date.now(),
-      },
-    ]);
+    setMessages([createGreetingMessage(mood)]);
     setError("");
     window.speechSynthesis?.cancel();
   };
@@ -246,7 +242,7 @@ export function NovaCompanion() {
               <button
                 key={m.id}
                 type="button"
-                onClick={() => setMood(m.id)}
+                onClick={() => handleMoodChange(m.id)}
                 className={cn(
                   "rounded-xl border px-3 py-2.5 text-left transition",
                   mood === m.id
